@@ -1,3 +1,5 @@
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmgmanav91%2FrinearnFiles.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmgmanav91%2FrinearnFiles?ref=badge_shield)
+
 ####################################################################################################
 
   - RINEARN Graph 3D ReadMe -
@@ -159,8 +161,11 @@
   For details, please see: https://www.rinearn.com/en-us/graph3d/guide/api
 
 
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmgmanav91%2FrinearnFiles.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmgmanav91%2FrinearnFiles?ref=badge_large)
+
 ####################################################################################################
 * Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
 * Microsoft Windows is either a registered trademarks or trademarks of Microsoft Corporation in the United States and/or other countries. 
 * Linux is a trademark of linus torvalds in the United States and/or other countries. 
-* Other names may be either a registered trademarks or trademarks of their respective owners. 
+* Other names may be either a registered trademarks or trademarks of their respective owners.
