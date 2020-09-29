@@ -1,0 +1,377 @@
+coding UTF-8;
+
+import Math;
+import Text;
+import GUI;
+import File;
+import tool.Graph3D;
+
+
+/** The default value of the expression z(x,y) to plot graph */
+const string DEFAULT_Z_EXPRESSION = "sin(2*x) + cos(2*y)";
+
+/** The default value of the maximum value of the x-range of the graph. */
+const string DEFAULT_X_MAX = "1.0";
+
+/** The default value of the minimum value of the x-range of the graph. */
+const string DEFAULT_X_MIN = "-1.0";
+
+/** The default value of the number of the point toward x-direction of the mesh. */
+const string DEFAULT_X_N = "80";
+
+/** The default value of the maximum value of the y-range of the graph. */
+const string DEFAULT_Y_MAX = "1.0";
+
+/** The default value of the minimum value of the y-range of the graph. */
+const string DEFAULT_Y_MIN = "-1.0";
+
+/** The default value of the number of the point toward y-direction of the mesh. */
+const string DEFAULT_Y_N = "80";
+
+
+// Followings  are variables to store IDs of the graph and GUI components.
+
+/** Store the ID of the graph. **/
+int graph = NULL;
+
+/** Store the ID of the input-window. **/
+int window = NULL;
+
+/** Store the ID of the text-field of the expression z(x,y). **/
+int expressionField = NULL;
+
+/** Store the ID of the text-field of the maximum value of x-range. **/
+int xMaxField = NULL;
+
+/** Store the ID of the text-field of the minimum value of x-range. **/
+int xMinField = NULL;
+
+/** Store the value of the number of the point toward x-direction of the mesh. */
+int xNField = NULL;
+
+/** Store the ID of the text-field of the maximum value of y-range. **/
+int yMaxField = NULL;
+
+/** Store the ID of the text-field of the minimum value of y-range. **/
+int yMinField = NULL;
+
+/** Store the value of the number of the point toward y-direction of the mesh. */
+int yNField = NULL;
+
+/** Store the ID of the PLOT button. **/
+int plotButton = NULL;
+
+/** Store the ID of the CLEAR button. **/
+int clearButton = NULL;
+
+/** Store the ID of the EXPORT button. **/
+int exportButton = NULL;
+
+/** Store the ID of the EXIT button. **/
+int exitButton = NULL;
+
+
+
+/**
+ * Invoked automatically when this program have started.
+ */
+void main(){
+
+	// Set the console window invisible because it is not necessary for GUI program.
+	hide();
+
+	// Create (or get from the system) a 3D graph window.
+	graph = getGraph3D();
+
+	// Set the size and the location of the graph-window.
+	setGraph3DLocation(graph, 350, 0);
+	setGraph3DSize(graph, 720, 600);
+
+	// Set options of the graph
+	setGraph3DOption( graph, "WITH_POINTS", false );
+	setGraph3DOption( graph, "WITH_LINES", false );
+	setGraph3DOption( graph, "WITH_MEMBRANES", true );
+	setGraph3DOption( graph, "WITH_MESHES", false );
+
+	// Create and launch the input-window.
+	createInputWindow();
+
+	// If you want to read processings after when the user click PLOT button, 
+	// see "onButtonClick" function at near the bottom of this code.
+}
+
+
+/**
+ * Plot the expression to the 3D graph.
+ * 
+ * @param zExpression The expression of z(x,y).
+ * @param xMin The minimum value of x-range.
+ * @param xMax The maximum value of x-range.
+ * @param xN The number of points toward x-direction of the mesh.
+ * @param xMin The minimum value of y-range.
+ * @param xMax The maximum value of y-range.
+ * @param yN The number of points toward y-direction of the mesh.
+ */
+void plotGraph( string zExpression, double xMin, double xMax, int xN, double yMin, double yMax, int yN ){
+
+	// Arrays storing vertices data to transfer the graph.
+	double xArray[yN][xN];
+	double yArray[yN][xN];
+	double zArray[yN][xN];
+
+	// coordinate variables of a point.
+	double x;
+	double y;
+	double z;
+
+	// Check the syntax of the expression z(x,y).
+	if( !evaluable(zExpression, 0.0) ){
+		alert("z(x,y)の式に誤りがあります。");
+		return;
+	}
+
+	// Store coordinate values to arrays at lattice points
+	// (xN-1 and yN-1 equally divided points of the x-range and y-range)
+	float dx = (xMax-xMin)/(xN-1);
+	float dy = (yMax-yMin)/(yN-1);
+	for( int xi=0; xi<xN; xi++ ){
+		for( int yi=0; yi<yN; yi++ ){
+			x = xMin + xi * dx;
+			y = yMin + yi * dy;
+
+			// Evaluate the value of z(x,y). (The second argument is an option to get the value of float type)
+			z = feval( zExpression, 0.0 );
+
+			xArray[ yi ][ xi ] = x;
+			yArray[ yi ][ xi ] = y;
+			zArray[ yi ][ xi ] = z;
+		}
+	}
+
+	// Transfer arrays to the graph, and plot it.
+	addGraph3DData( graph, xArray, yArray, zArray );
+}
+
+
+/**
+ * Create GUI components of the input-window and launch it.
+ */
+void createInputWindow(){
+
+	int leftWidth = 100;
+	int rightX = leftWidth + 10;
+	int rightWidth = 190;
+	int buttonWidth = 290;
+	int fontSize = 20;
+
+	window = newWindow( 0, 0, 340, 450, "Input Window" );
+
+	int expressionLabel = newTextLabel( 10, 10, leftWidth, 25, "z(x,y) =" );
+	setComponentFontSize(expressionLabel, fontSize);
+	mountComponent( expressionLabel, window );
+
+	expressionField = newTextField( rightX, 10, rightWidth, 25, DEFAULT_Z_EXPRESSION );
+	setComponentFontSize(expressionField, fontSize);
+	mountComponent( expressionField, window );
+
+
+	int lowX = 10;
+	int columnWidth = 70;
+
+	int xMaxLabel = newTextLabel( lowX, 60, columnWidth, 25, "x-max" );
+	setComponentFontSize(xMaxLabel, fontSize);
+	mountComponent( xMaxLabel, window );
+
+	xMaxField = newTextField( lowX+columnWidth, 60, columnWidth, 25, DEFAULT_X_MAX );
+	setComponentFontSize(xMaxField, fontSize);
+	mountComponent( xMaxField, window );
+
+	int xMinLabel = newTextLabel( lowX, 90, columnWidth, 25, "x-min" );
+	setComponentFontSize(xMinLabel, fontSize);
+	mountComponent( xMinLabel, window );
+
+	xMinField = newTextField( lowX+columnWidth, 90, columnWidth, 25, DEFAULT_X_MIN );
+	setComponentFontSize(xMinField, fontSize);
+	mountComponent( xMinField, window );
+
+	int xNLabel = newTextLabel( lowX, 120, columnWidth, 25, "x-N" );
+	setComponentFontSize(xNLabel, fontSize);
+	mountComponent( xNLabel, window );
+
+	xNField = newTextField( lowX+columnWidth, 120, columnWidth, 25, DEFAULT_X_N );
+	setComponentFontSize(xNField, fontSize);
+	mountComponent( xNField, window );
+
+
+	lowX = 160;
+	columnWidth = 70;
+
+	int yMaxLabel = newTextLabel( lowX, 60, columnWidth, 25, "y-max" );
+	setComponentFontSize(yMaxLabel, fontSize);
+	mountComponent( yMaxLabel, window );
+
+	yMaxField = newTextField( lowX+columnWidth, 60, columnWidth, 25, DEFAULT_Y_MAX );
+	setComponentFontSize(yMaxField, fontSize);
+	mountComponent( yMaxField, window );
+
+	int yMinLabel = newTextLabel( lowX, 90, columnWidth, 25, "y-min" );
+	setComponentFontSize(yMinLabel, fontSize);
+	mountComponent( yMinLabel, window );
+
+	yMinField = newTextField( lowX+columnWidth, 90, columnWidth, 25, DEFAULT_Y_MIN );
+	setComponentFontSize(yMinField, fontSize);
+	mountComponent( yMinField, window );
+
+	int yNLabel = newTextLabel( lowX, 120, columnWidth, 25, "y-N" );
+	setComponentFontSize(yNLabel, fontSize);
+	mountComponent( yNLabel, window );
+
+	yNField = newTextField( lowX+columnWidth, 120, columnWidth, 25, DEFAULT_Y_N );
+	setComponentFontSize(yNField, fontSize);
+	mountComponent( yNField, window );
+
+
+	plotButton = newButton( 10, 160, buttonWidth, 50, "PLOT" );
+	setComponentFontSize(plotButton, fontSize);
+	mountComponent( plotButton, window );
+
+
+	clearButton = newButton( 10, 220, buttonWidth, 50, "CLEAR" );
+	setComponentFontSize(clearButton, fontSize);
+	mountComponent( clearButton, window );
+
+	exportButton = newButton( 10, 280, buttonWidth, 50, "EXPORT" );
+	setComponentFontSize(exportButton, fontSize);
+	mountComponent( exportButton, window );
+
+	exitButton = newButton( 10, 340, buttonWidth, 50, "EXIT" );
+	setComponentFontSize(exitButton, fontSize);
+	mountComponent( exitButton, window );
+}
+
+
+/**
+ * Export data of the current graph to a file.
+ */
+void exportFile(){
+
+	// Choose the file path to export.
+	string exportFilePath[] = choose();
+	if (length(exportFilePath) == 0) {
+		return; // Case of nothing has chosen.
+	}
+
+	// If the file path has no extension, append it.
+	string name = getFileName( exportFilePath[0] );
+	if( indexOf(name,".") < 0 ){
+		exportFilePath += ".dat3d";
+	}
+
+	// Export to a file.
+	exportGraph3DData(graph, exportFilePath[0], "COLUMN_TSV");
+
+	// Show message of completion.
+	pop( "SAVED: " + exportFilePath[0] );
+}
+
+
+/**
+ * Invoked when buttons are clicked (event handler).
+ * 
+ * @param id The ID of the clicked button.
+ */
+void onButtonClick( int id ){
+
+	// Case of PLOT button was clicked.
+	if( id == plotButton ){
+		
+		// Get the inputted expression of z(x,y).
+		string zExpression = getComponentText( expressionField );
+
+		// Check syntax of inputted contents of x-max, x-min, x-N, etc.
+		if( !evaluable( getComponentText( xMaxField ), 0.0 ) ){
+			alert("The form of the expression of x-max is wrong.");
+			return;
+		}
+		if( !evaluable( getComponentText( xMinField ), 0.0 ) ){
+			alert("The form of the expression of x-min is wrong.");
+			return;
+		}
+		if( !evaluable( getComponentText( xNField ), 0.0 ) ){
+			alert("The form of the expression of x-N is wrong.");
+			return;
+		}
+		if( !evaluable( getComponentText( yMaxField ), 0.0 ) ){
+			alert("The form of the expression of y-max is wrong.");
+			return;
+		}
+		if( !evaluable( getComponentText( yMinField ), 0.0 ) ){
+			alert("The form of the expression of y-min is wrong.");
+			return;
+		}
+		if( !evaluable( getComponentText( yNField ), 0.0 ) ){
+			alert("The form of the expression of y-N is wrong.");
+			return;
+		}
+
+		// Evaluate values of x-max, x-min, x-N.
+		double xMax = feval( getComponentText( xMaxField ), 0.0 );
+		double xMin = feval( getComponentText( xMinField ), 0.0 );
+		int xN = feval( getComponentText( xNField ), 0.0 );
+
+		// Evaluate values of y-max, y-min, y-N.
+		double yMax = feval( getComponentText( yMaxField ), 0.0 );
+		double yMin = feval( getComponentText( yMinField ), 0.0 );
+		int yN = feval( getComponentText( yNField ), 0.0 );
+
+		// Plot the inputted expression of z(x,y) to the graph.
+		// ( "plotGraph" function is declared at near the top of this program. )
+		plotGraph( zExpression, xMin, xMax, xN, yMin, yMax, yN );
+		return;
+	}
+
+	// Case of CLEAR button was clicked.
+	if( id == clearButton ){
+		clearGraph3D(graph);
+		return;
+	}
+
+	// Case of EXPORT button was clicked.
+	if( id == exportButton ){
+		exportFile();
+		return;
+	}
+
+	// Case of EXIT button was clicked.
+	if( id == exitButton ){
+		exit();
+		return;
+	}
+}
+
+
+/**
+ * Invoked when windows are closed (event handler).
+ * 
+ * @param id The ID of the closed window.
+ */
+void onWindowClose( int id ){
+	if( id == window ){
+		exit();
+		return;
+	}
+}
+
+
+/**
+ * Invoked when graphs are closed (event handler).
+ * 
+ * @param id The ID of the closed graph.
+ */
+void onGraph3DClose( int id ){
+	if( id == graph ){
+		exit();
+		return;
+	}
+}
+

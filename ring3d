@@ -1,0 +1,36 @@
+#!/bin/sh
+
+CURRENT_DIRECTORY_PATH="$(pwd)"
+SHELL_SCRIPT_PATH="$(dirname $0)"
+cd "$SHELL_SCRIPT_PATH"
+cd ..
+
+
+
+#USE DEFAULT MEMORY
+java -jar RinearnGraph3D.jar --dir "$CURRENT_DIRECTORY_PATH" "$@"
+
+#USE 64MB
+#java -Xmx64m -jar RinearnGraph3D.jar --dir "$CURRENT_DIRECTORY_PATH" "$@"
+
+#USE 128MB
+#java -Xmx128m -jar RinearnGraph3D.jar --dir "$CURRENT_DIRECTORY_PATH" "$@"
+
+#USE 256MB
+#java -Xmx256m -jar RinearnGraph3D.jar --dir "$CURRENT_DIRECTORY_PATH" "$@"
+
+#USE 512MB
+#java -Xmx512m -jar RinearnGraph3D.jar --dir "$CURRENT_DIRECTORY_PATH" "$@"
+
+#USE 1GB
+#java -Xmx1g -jar RinearnGraph3D.jar --dir "$CURRENT_DIRECTORY_PATH" "$@"
+
+#USE 2GB
+#java -Xmx2g -jar RinearnGraph3D.jar --dir "$CURRENT_DIRECTORY_PATH" "$@"
+
+#USE 4GB
+#java -Xmx4g -jar RinearnGraph3D.jar --dir "$CURRENT_DIRECTORY_PATH" "$@"
+
+#USE 8GB
+#java -Xmx8g -jar RinearnGraph3D.jar --dir "$CURRENT_DIRECTORY_PATH" "$@"
+

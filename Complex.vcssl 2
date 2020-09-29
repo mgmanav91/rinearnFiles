@@ -1,0 +1,35 @@
+include "../../system/Complex.vcssl";
+
+
+public complex cexp(complex arg){
+	float re = System.re(arg);
+	float im = System.im(arg);
+	return exp(re)*cos(im) + exp(re)*sin(im)*I;
+}
+
+public varcomplex cexp(varcomplex arg){
+  varint digitStock = getdigit();
+  varfloat re = System.re(arg);
+  varfloat im = System.im(arg);
+  varcomplex value = exp(re)*cos(im) + exp(re)*sin(im)*System.VCI;
+  digit(digitStock);
+  return value;
+}
+
+public float[] cexp(float arg[]){
+	float value[2];
+	value[RE] = exp(arg[RE]) * cos(arg[IM]);
+	value[IM] = exp(arg[RE]) * sin(arg[IM]);
+	return value;
+}
+
+public varfloat[] cexp(varfloat arg[]){
+	varfloat value[2];
+    varint digitStock = getdigit();
+	value[RE] = exp(arg[RE]) * cos(arg[IM]);
+	value[IM] = exp(arg[RE]) * sin(arg[IM]);
+    digit(digitStock);
+	return value;
+}
+
+

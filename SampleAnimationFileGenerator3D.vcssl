@@ -1,0 +1,44 @@
+coding Shift_JIS;
+
+import Math;
+
+const int FILE_NUMBER_BEGIN = 0;
+const int FILE_NUMBER_END = 31;
+const int FILE_N = FILE_NUMBER_END - FILE_NUMBER_BEGIN + 1;
+
+const string FILE_NAME_BASE = "sample3d_";
+const string FILE_EXTENTION = ".txt";
+
+const float X_MAX = 2.0 * PI;
+const float X_MIN = 0.0;
+const float Y_MAX = 2.0 * PI;
+const float Y_MIN = 0.0;
+const int X_N = 33;
+const int Y_N = 33;
+const float DX = (X_MAX - X_MIN) / (X_N-1);
+const float DY = (Y_MAX - Y_MIN) / (Y_N-1);
+const float DT = 2.0 * PI / FILE_N;
+
+
+for (int fileNumber = FILE_NUMBER_BEGIN; fileNumber<=FILE_NUMBER_END; fileNumber++) {
+	
+	string fileName = FILE_NAME_BASE + fileNumber + FILE_EXTENTION;
+	println("file: " + fileName);
+	
+	int file = open(fileName, WRITE_TSV);
+	
+	for (int yi=0; yi<Y_N; yi++) {
+		for (int xi=0; xi<X_N; xi++) {
+			float t = fileNumber * DT;
+			float x = xi * DX;
+			float y = yi * DY;
+			float z = sin(x - t) + sin(y - t);
+			writeln(file, x, y, z);
+		}
+		writeln(file, "");
+	}
+	
+	close(file);
+}
+
+popup("Successfully completed.");

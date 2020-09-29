@@ -1,0 +1,12 @@
+coding UTF-8;
+
+
+/**
+ * グラフウィンドウが閉じられた際にコールされます。
+ * 
+ * @param graphID イベント発生元グラフのID
+ */
+void onGraph2DClose( int graphID ) {
+}
+
+

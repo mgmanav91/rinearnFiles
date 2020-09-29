@@ -1,0 +1,4 @@
+coding Shift_JIS;
+
+string content = load("About_Programs_in_This_Folder.txt");
+print(content);

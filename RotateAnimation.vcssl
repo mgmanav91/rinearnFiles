@@ -1,0 +1,342 @@
+coding Shift_JIS;  // 文字コードの明示（文字化け予防）
+
+// ライブラリの読み込み
+import GUI;
+import Math;
+import File;
+import tool.Graph3D;
+
+
+/** デフォルトのファイル画像保存先フォルダです。 */
+const string DEFAULT_OUTPUT_DIRECTORY_PATH = "../AnimationOutput";
+
+/** デフォルトの保存画像ファイル名（番号部分や拡張子は除く）です。 */
+const string DEFAULT_OUTPUT_FILE_NAME_HEAD = "sample3d";
+
+/** 水平角度の刻み数（ ＝ アニメーションのコマ数）です。 */
+const int HORIZONTAL_ANGLE_DEGREE_N = 360;
+
+/** アニメーション開始時点における水平角度のデフォルト値（刻み数単位）です。 */
+const int HORIZONTAL_ANGLE_DEGREE_DEFAULT = 0;
+
+/** 垂直角度の刻み数です。 */
+const int VERTICAL_ANGLE_DEGREE_N = 180;
+
+/** 垂直角度のデフォルト値（刻み数単位）です。 */
+const int VERTICAL_ANGLE_DEGREE_DEFAULT = 50;
+
+/** アニメーション速度の最大値です。 */
+const float SPEED_MAX = 10.0;
+
+/** アニメーション速度の最小値です。 */
+const float SPEED_MIN = 0.05;
+
+/** アニメーション速度のデフォルト値です。 */
+const float SPEED_DEFAULT = 1.0;
+
+/** アニメーション速度が 1.0 の時のアニメーションウェイト値です。 */
+const int BASE_ANIMATION_WAIT = 33;
+
+
+
+// 以下、内部状態関連の変数
+
+/** アニメーションが1刻み進む際の待ち時間（アニメーションウェイト）を保持します。 */
+int animationWait = (int)( BASE_ANIMATION_WAIT / SPEED_DEFAULT );
+
+/** グラフをプロットするリクエストフラグ（trueにするとメインループでプロットされ、falseに戻される）です。 */
+bool plotRequest = false;
+
+/** メインループの継続状態を保持します（falseにすると脱出）。 */
+bool mainLoopState = true;
+
+/** アニメーションの状態を保持します（true=アニメーション中、false=待機状態）。 */
+bool animationState = false;
+
+/** 現在の水平角（刻み単位）の値を控えます。 */
+int currentHorizontalAngleDegree = HORIZONTAL_ANGLE_DEGREE_DEFAULT;
+
+/** 現在の垂直角（刻み単位）の値を控えます。 */
+int currentVerticalAngleDegree = VERTICAL_ANGLE_DEGREE_DEFAULT;
+
+/** 最後に画像を保存したフォルダのパスを控えます。 */
+string lastOutputDirectoryPath = DEFAULT_OUTPUT_DIRECTORY_PATH;
+
+
+
+// 以下、グラフやGUIコンポーネントIDを格納する変数
+
+/** グラフのIDを格納します。 **/
+int graph = NULL;
+
+/** アニメーションウィンドウのIDを格納します。 */
+int animationWindow = NULL;
+
+/** アニメーションの「PLAY」/「STOP」ボタンのIDを格納します。 */
+int animationButton = NULL;
+
+/** 画像出力ボタンのIDを格納します。 */
+int outputButton = NULL;
+
+/** 水平角度を操作するスライダーのIDを格納します。 */
+int horizontalAngleSlider = NULL;
+
+/** 見下ろし角度を操作するスライダーのIDを格納します。 */
+int verticalAngleSlider = NULL;
+
+/** アニメーション速度を操作するスライダーのIDを格納します。 */
+int speedSlider = NULL;
+
+/** 回転方向を反転させるチェックボックスのIDを格納します。 */
+int reverseBox = NULL;
+
+
+
+/**
+ * 最上階層の全体的な処理です。この関数は起動時に自動で実行されます。
+ */
+void main() {
+	
+	// コンソールを非表示に設定
+	hide();
+	
+	// システム側で標準接続されている3DグラフソフトがあればIDを取得（無ければnewGraph3D関数同様、新規に立ち上がる）
+	graph = getGraph3D();
+	
+	// 取得したグラフ画面が他のウィンドウよりも後ろにある場合は、最前面に持ってきたいため、一旦非表示にして再表示する	
+	hideGraph3D(graph);
+	showGraph3D(graph);
+	
+	// グラフの画面位置を調整
+	setGraph3DLocation(graph, 0, 170);
+	
+	// アニメーション操作画面を生成
+	createAnimationWindow();
+	
+	// メインループ ― プログラム終了までずっと繰り返し、必要なら処理を行い、何も無ければ待機する
+	while( mainLoopState ){
+		
+		if( animationState ){
+			if( currentHorizontalAngleDegree < HORIZONTAL_ANGLE_DEGREE_N-1 ){
+				setComponentValueInt( horizontalAngleSlider, currentHorizontalAngleDegree+1 );
+			}else{
+				setComponentValueInt( horizontalAngleSlider, 0 );
+			}
+		}
+		
+		if( plotRequest ){
+			currentHorizontalAngleDegree = getComponentValueInt(horizontalAngleSlider);
+			currentVerticalAngleDegree = getComponentValueInt(verticalAngleSlider);
+			updateGraph(currentHorizontalAngleDegree, currentVerticalAngleDegree);
+		}
+		
+		sleep( animationWait );
+	}
+	
+	// メインループを脱出すれば終了
+	exit();
+}
+
+
+/**
+ * 指定された角度で、グラフを更新します。
+ * 
+ * @param horizontalAngleDegree 水平角度（刻み数単位）
+ * @param verticalAngleDegree 垂直角度（刻み数単位）
+ */
+void updateGraph(int horizontalAngleDegree, int verticalAngleDegree) {
+	float horizontalAngle = ( 2.0 * PI * horizontalAngleDegree ) / HORIZONTAL_ANGLE_DEGREE_N;
+	float verticalAngle = ( PI * verticalAngleDegree ) / VERTICAL_ANGLE_DEGREE_N;
+	if (getComponentValueBool(reverseBox)) {
+		horizontalAngle = -horizontalAngle;
+	}
+	setGraph3DCameraAngle(graph, horizontalAngle, verticalAngle, "ZENITH_Z");
+}
+
+
+/**
+ * アニメーション操作画面を起動します。
+ */
+void createAnimationWindow(){
+	
+	animationWindow = newWindow( 0, 0, 770, 164, "Animation Window" );
+	
+	animationButton = newButton( 10, 10, 100, 65, "PLAY" );
+	mountComponent( animationButton, animationWindow );
+	
+	outputButton = newButton( 10, 85, 100, 25, "SAVE_ IMAGE" );
+	mountComponent( outputButton, animationWindow );
+	
+	int horizontalAngleLabel = newTextLabel(140, 10, 70, 30, "Angle (H)");
+	mountComponent( horizontalAngleLabel, animationWindow );
+	
+	horizontalAngleSlider = newHorizontalSlider( 200, 10, 540, 30, HORIZONTAL_ANGLE_DEGREE_DEFAULT, 0, HORIZONTAL_ANGLE_DEGREE_N );
+	mountComponent( horizontalAngleSlider, animationWindow );
+	
+	int verticalAngleLabel = newTextLabel(140, 45, 70, 30, "Angle (V)");
+	mountComponent( verticalAngleLabel, animationWindow );
+	
+	verticalAngleSlider = newHorizontalSlider( 200, 45, 540, 30, VERTICAL_ANGLE_DEGREE_DEFAULT, 0, VERTICAL_ANGLE_DEGREE_N );
+	mountComponent( verticalAngleSlider, animationWindow );
+	
+	int speedLabel = newTextLabel(150, 80, 50, 30, "Speed");
+	mountComponent( speedLabel, animationWindow );
+	
+	speedSlider = newHorizontalSlider( 200, 80, 390, 30, SPEED_DEFAULT, SPEED_MIN, SPEED_MAX );
+	mountComponent( speedSlider, animationWindow );
+	
+	reverseBox = newCheckBox( 600, 80, 250, 30, "Reverse Direction", false );
+	mountComponent( reverseBox, animationWindow );
+}
+
+
+/**
+ * 全角度のグラフを、連番画像として保存します。
+ * 
+ * @param outputDirectoryPath 保存先フォルダのパス
+ * @param outputFileNameHead 保存ファイル名（番号部と拡張子は除く）
+ */
+void outputImages(string outputDirectoryPath, string outputFileNameHead) {
+	
+	// 進捗 print 用にコンソールを表示し、
+	// 代わりにグラフとアニメーション操作画面をを非表示にする（処理中のユーザー操作を防ぐため）
+	show();
+	hideGraph3D(graph);
+	hideComponent(animationWindow);
+	
+	// 現時点でアニメーション中かもしれないため停止状態に
+	setAnimationState(false);
+	plotRequest = false;
+	
+	// 角度を1刻みずつ変えながらグラフを更新し、全て画像に保存
+	for (currentHorizontalAngleDegree=0; currentHorizontalAngleDegree<HORIZONTAL_ANGLE_DEGREE_N; currentHorizontalAngleDegree++) {
+		updateGraph(currentHorizontalAngleDegree, currentVerticalAngleDegree);
+		string outputFileName = outputFileNameHead + currentHorizontalAngleDegree + ".png";
+		string outputFilePath = getFilePath(outputFileName, outputDirectoryPath);
+		println(" [" + currentHorizontalAngleDegree + "/" + (HORIZONTAL_ANGLE_DEGREE_N-1) + "]" + " 画像保存： " + outputFilePath);
+		exportGraph3D(graph, outputFilePath, "PNG");
+	}
+	currentHorizontalAngleDegree = 0;
+	setComponentValueInt( horizontalAngleSlider, 0 );
+	
+	// 保存が終わったのでグラフとアニメーション操作画面を再び表示し、コンソールを非表示にする
+	showGraph3D(graph);
+	showComponent(animationWindow);
+	hide();
+	
+	popup("保存しました。保存先フォルダ： " + EOL + outputDirectoryPath);
+}
+
+
+/**
+ * アニメーションのON/OFF状態を切り替えます。
+ * 
+ * @param state アニメーションのON/OFF状態（ONならtrue）
+ */
+void setAnimationState( bool state ){
+	animationState = state;
+	if( state ){
+		setComponentText( animationButton, "STOP" );
+	}else{
+		setComponentText( animationButton, "PLAY" );
+	}
+}
+
+
+/**
+ * ボタンが押された際にコールされます（イベントハンドラ）
+ * 
+ * @param id 押されたボタンのID
+ */
+void onButtonClick( int id ){
+	
+	// 「PLAY/STOP」ボタンが押された場合
+	if( id == animationButton ){
+		if( animationState ){
+			setAnimationState( false );
+		}else{
+			setAnimationState( true );
+		}
+		return;
+	}
+	
+	// 「画像保存」ボタンが押された場合
+	if ( id == outputButton ) {
+		
+		string[] choosenPaths = choose("画像の保存先フォルダを選択してください", getFilePath("../", lastOutputDirectoryPath));
+		if (length(choosenPaths)[0] == 0) {
+			return;
+		}
+		string outputDirectoryPath = choosenPaths[0];
+		lastOutputDirectoryPath = outputDirectoryPath;
+
+		if (!isdir(outputDirectoryPath)) {
+			alert("指定された保存先フォルダ「" + outputDirectoryPath + "」はフォルダではありません。");
+			return;
+		}
+		
+		string outputFileNameHead = input("画像のファイル名（番号部分や拡張子は除く）を入力", DEFAULT_OUTPUT_FILE_NAME_HEAD);
+		if (outputFileNameHead == NULL) {
+			return;
+		}
+		println("ファイル名 = " + outputFileNameHead);
+		
+		outputDirectoryPath = getFilePath(outputDirectoryPath);
+		outputImages(outputDirectoryPath, outputFileNameHead);
+		
+		return;
+	}
+}
+
+
+/**
+ * 整数値のスライダーが動かされた際にコールされます（イベントハンドラ）
+ * 
+ * @param id 動かされたスライダーのID
+ * @param value スライダーの値
+ */
+void onSliderMove( int id, int value ){
+	if( id == horizontalAngleSlider ){
+		currentHorizontalAngleDegree = value;
+		plotRequest = true;
+	}
+}
+
+
+/**
+ * 浮動小数点値のスライダーが動かされた際にコールされます（イベントハンドラ）
+ * 
+ * @param id 動かされたスライダーのID
+ * @param value スライダーの値
+ */
+void onSliderMove( int id, float value ){
+	if ( id == speedSlider ) {
+		float speed = getComponentValueFloat( speedSlider );
+		animationWait = (int)( BASE_ANIMATION_WAIT / speed );
+	}
+}
+
+
+/**
+ * ウィンドウが閉じられた際にコールされます（イベントハンドラ）
+ * 
+ * @param id 閉じられたウィンドウのID
+ */
+void onWindowClose(int id) {
+	if (id == animationWindow) {
+		mainLoopState = false;
+	}
+}
+
+
+/**
+ * グラフが閉じられた際にコールされます（イベントハンドラ）
+ * 
+ * @param id 閉じられたグラフのID
+ */
+void onGraph3DClose(int id) {
+	if (id == graph) {
+		mainLoopState = false;
+	}
+}
+

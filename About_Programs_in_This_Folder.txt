@@ -1,0 +1,41 @@
+Plotting tools for some advanced usages are in this folder.
+
+These tools are written in the VCSSL (programming language). 
+The RINEARN Graph supports the VCSSL by default, so you can 
+execute these tools by selecting from "Program" menu on the menu bar.
+
+These tools are also distributed on webpages in the code archive 
+of the VCSSL official website. 
+For details of tools (e.g. how to use), see those webpages.
+
+The following is the list of abstracts and webpages of tools.
+----------------------------------------------------------------------------------------------------
+
+* MathPlot_z(x,y).vcssl
+
+   A simple tool which plots the expression (formula) of the form of 
+   "z = f(x,y)" to the 3D graph.
+
+   How to Use: https://www.vcssl.org/en-us/code/archive/0001/5100-graph3d-input-zxy/
+
+* MathPlot_z(x,y,t).vcssl
+
+   A simple tool which plots the expression (formula) of the form of 
+   "z = f(x,y,t)" to the 3D graph, and plays it as animation.
+
+   How to Use: https://www.vcssl.org/en-us/code/archive/0001/5500-graph3d-input-zxyt/
+
+* MathPlot_x(t),y(t),z(t).vcssl
+
+   A simple tool which plots parametric expressions (formulas) of the 
+   form of x(t), y(t), z(t) to the 3D graph, and plays it as animation.
+
+   How to Use: https://www.vcssl.org/en-us/code/archive/0001/5300-graph3d-input-xt-yt-zt/
+
+* Animation_of_Multiple_3D_Data_Files.vcssl
+
+   A simple tool which plots 3D animation graphs 
+   by loading multiple data files.
+
+   How to Use: https://www.vcssl.org/en-us/code/archive/0001/7300-graph-file-animator-3d/
+

@@ -1,0 +1,2 @@
+When you use "Program" > "Animation_of_Multiple_3D_Data_Files.vcssl" script,
+data files will be loaded from this folder by default.
